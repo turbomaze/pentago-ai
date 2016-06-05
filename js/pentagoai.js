@@ -15,8 +15,8 @@ var PentagoAI = (function() {
     // 2 is random opponent
     // 3 is auto smart
     // 4 is smart opponent
-		var AUTOPLAY_MODE = 0; // 0 is manual
-		var PLAY_RATE = 80; // ms per turn in auto play
+		var AUTOPLAY_MODE = 3; // 0 is manual
+		var PLAY_RATE = 500; // ms per turn in auto play
     var PLACE_DELAY = 500; // ms per placement 
     var ROTATE_DELAY = 500; // ms per rotation
 
@@ -75,7 +75,7 @@ var PentagoAI = (function() {
         }
       }
 
-			// play randomly
+			// play automatically 
       if (AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3) {
 			  setInterval(function() {
 			  	if (AUTOPLAY_MODE === 1) makeRandomMove();
@@ -84,11 +84,11 @@ var PentagoAI = (function() {
       }
     }
 
-    // chooses a random placement and rotation and executes them as a player
-		function makeRandomMove() {
+    // chooses a random placement and rotation
+		function getRandomMove(s) {
 			var x = Math.floor(6*Math.random());
 			var y = Math.floor(6*Math.random());
-			while (state[y][x] !== -1) {
+			while (s[y][x] !== -1) {
   			x = Math.floor(6*Math.random());
 				y = Math.floor(6*Math.random());
 			}
@@ -96,21 +96,88 @@ var PentagoAI = (function() {
 			var p = Math.floor(2*Math.random());
 			var q = Math.floor(2*Math.random());
 			var c = Math.floor(2*Math.random());
+      return [x, y, p, q, c];
+    }
 
-			placeMarble(x, y);
+    // and executes them as a player
+		function makeRandomMove() {
+      var move = getRandomMove(state);
+
+			placeMarble(move[0], move[1]);
 			setTimeout(function() {
-        rotateBoard(p, q, c);
+        rotateBoard(move[2], move[3], move[4]);
       }, AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3 ? 0 : ROTATE_DELAY);
 		}
 
     // given state s and move <x, y, p, q, c>, gives the resulting game state
     function getNextState(s, x, y, p, q, c) {
-
+      var newState = s.map(function(row) { return row.slice(0); });
+      newState[y][x] = currPlayer; // place piece
+      newState = rotateState(state, p, q, c);
+      return newState;
     }
 
-    // chooses a smart placement and rotation and executes them as a player
+    // given a state s and player p, returns all valid next
+    function getValidMoves() {
+      var moves = [];
+
+      // get all open spots
+      var openSpots = [];
+      for (var yi = 0; yi < 6; yi++) {
+        for (var xi = 0; xi < 6; xi++) {
+          if (state[yi][xi] === -1) {
+            openSpots.push([xi, yi])
+          }
+        }
+      }
+
+      // add eight moves (the eight rotations) for each of them
+      for (var mi = 0; mi < openSpots.length; mi++) {
+        for (var yi = 0; yi < 2; yi++) {
+          for (var xi = 0; xi < 2; xi++) {
+            for (var ci = 0; ci < 2; ci++) {
+              moves.push(openSpots[mi].concat([xi, yi, ci]));
+            }
+          }
+        }
+      }
+
+      return moves;
+    }
+
+    // given a state s and move m, returns the expected end game score
+    function getProbabilisticScore(s, t, m) {
+      var t = 100;
+      return 0;
+    }
+
+    // chooses a smart placement and rotation
+    function getSmartMove() {
+      // get all the moves
+      var moves = getValidMoves();
+
+      // get the move with the best score
+      var bestMove = [false, -Infinity];
+      var scores = moves.forEach(function(move) {
+        var score = getProbabilisticScore(state, move);
+        if (score > bestMove[1]) {
+          bestMove = [move, score];
+        }
+      });
+
+      return bestMove[0];
+    }
+    
+    // and executes them as a player
     function makeSmartMove() {
-      makeRandomMove();
+      var move = getSmartMove();
+      
+      // execute that move
+			placeMarble(move[0], move[1]);
+			setTimeout(function() {
+        rotateBoard(move[2], move[3], move[4]);
+        // renderState(state);
+      }, AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3 ? 0 : ROTATE_DELAY);
     }
 
     // detects whether or not the game is over and notifies the user
@@ -130,7 +197,9 @@ var PentagoAI = (function() {
         turnState = 0;
         currPlayer = 0;
 
-        renderState(state);
+        setTimeout(function() {
+          renderState(state);
+        }, PLAY_RATE/2);
       }
     }
 
@@ -140,7 +209,8 @@ var PentagoAI = (function() {
         alertUser('First you must place a marble.');
       } else {
         // rotate now
-        rotateState(x, y, c);
+        state = rotateState(state, x, y, c);
+        renderState(state);
 
         // update turn state
         currPlayer = 1 - currPlayer;
@@ -168,27 +238,24 @@ var PentagoAI = (function() {
     }
 
     // given a quadrant and a direction, rotates the game state
-    function rotateState(x, y, c) {
+    function rotateState(s, x, y, c) {
       if (c === 1) {
-        rotateState(x, y, 0);
-        rotateState(x, y, 0);
-        rotateState(x, y, 0);
+        var newState = rotateState(s, x, y, 0);
+        newState = rotateState(newState, x, y, 0);
+        return rotateState(newState, x, y, 0);
       } else {
         // rotate counterclockwise 90 degrees
-        var newState = state.map(function(row) {
+        var newState = s.map(function(row) {
           return row.slice(0);
         });
         var bx = 3*x+1, by = 3*y+1;
         for (var yi = -1; yi < 2; yi++) {
           for (var xi = -1; xi < 2; xi++) {
-            newState[by+yi][bx+xi] = state[by+xi][bx-yi];
+            newState[by+yi][bx+xi] = s[by+xi][bx-yi];
           }
         }
-
-        state = newState;
+        return newState;
       }
-
-      renderState(state);
     }
 
     // looks at the game state and determines whether or not there's a 5-line
