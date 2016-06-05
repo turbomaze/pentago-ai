@@ -24,11 +24,11 @@ var PentagoAI = (function() {
       state = [];
 
       // generate ui grid
-      for (var yi = 0; yi < 6; yi++) {
+      for (var xi = 0; xi < 6; xi++) {
         var div = document.createElement('div');
         div.className = 'col';
         state.push([]);
-        for (var xi = 0; xi < 6; xi++) {
+        for (var yi = 0; yi < 6; yi++) {
           var sq = document.createElement('div');
           sq.className= 'color-square blank';
           sq.id = 'sq'+xi+'-'+yi;
@@ -36,7 +36,7 @@ var PentagoAI = (function() {
             placeMarble.apply(
               this,
               this.id.substring(2).split('-').map(function(a) {
-                return parseInt(a);   
+                return parseInt(a);
               }
             ));
           });
@@ -69,18 +69,52 @@ var PentagoAI = (function() {
     }
 
     function rotateBoard(x, y, c) {
-      console.log(x, y, c);
       if (turnState === 0) {
         alert('First you must place a marble.');
       } else {
         // rotate now
-        console.log('rotate');
-        
+        rotateState(x, y, c);
+
         // update turn state
         currPlayer = 1 - currPlayer;
         turnState = 0;
         $s('#turn').innerHTML = currPlayer === 0 ? 'Red' : 'Blue';
         $s('#what').innerHTML = 'place';
+      }
+    }
+
+    function rotateState(x, y, c) {
+      if (c === 1) {
+        rotateState(x, y, 0);
+        rotateState(x, y, 0);
+        rotateState(x, y, 0);
+      } else {
+        // rotate counterclockwise 90 degrees
+        var newState = state.map(function(row) {
+          return row.slice(0);
+        });
+        var bx = 3*x+1, by = 3*y+1;
+        console.log('b', bx, by);
+        for (var yi = -1; yi < 2; yi++) {
+          for (var xi = -1; xi < 2; xi++) {
+            newState[by+yi][bx+xi] = state[by+xi][bx-yi];
+          }
+        }
+
+        state = newState;
+      }
+
+      renderState();
+    }
+
+    function renderState() {
+      for (var yi = 0; yi < 6; yi++) {
+        for (var xi = 0; xi < 6; xi++) {
+          var cn = 'color-square blank';
+          if (state[yi][xi] === 0) cn += ' red';
+          else if (state[yi][xi] === 1) cn += ' blue';
+          $s('#sq'+xi+'-'+yi).className = cn;
+        }
       }
     }
 

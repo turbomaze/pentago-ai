@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Lucia Color Game</title>
+        <title>Pentago</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
 
         <script src="js/pentagoai.js"></script>
@@ -10,7 +10,7 @@
         <style>
         body {
           font-family: Sans;
-          background-color: rgb(255, 252, 250);
+          background-color: rgb(250, 246, 245);
         }
 
         #container {
@@ -20,7 +20,7 @@
         }
 
         .rotate-controls {
-          width: 100px;
+          width: 50px;
           height: 100px;
         }
 
@@ -33,12 +33,17 @@
           height: 100%;
         }
 
+        .rotate-controls {
+          margin-bottom: 20px;
+        }
+
         .rotate-cell {
           cursor: pointer;
           width: 100%;
           height: 50%;
           border: 1px solid #efefef;
           background-color: white;
+          margin-bottom: 20px;
           line-height: 50px;
           font-size: 25px;
           text-align: center;
@@ -89,22 +94,22 @@
         <div class="rotate-controls left">
           <div class="rotate-col">
             <div class="rotate-cell" id="r0-0ccw">&larr;</div>
-            <div class="rotate-cell" id="r0-1ccw">&darr;</div>
+            <div class="rotate-cell" id="r0-1ccw">&larr;</div>
           </div>
           <div class="rotate-col">
-            <div class="rotate-cell" id="r1-0ccw">&uarr;</div>
-            <div class="rotate-cell" id="r1-1ccw">&rarr;</div>
+            <div class="rotate-cell" id="r0-0cw">&rarr;</div>
+            <div class="rotate-cell" id="r0-1cw">&rarr;</div>
           </div>
         </div/>
 
-        <div class="rotate-controls right">
+        <div class="rotate-controls left" style="margin-left: 20px">
           <div class="rotate-col">
-            <div class="rotate-cell" id="r0-0cw">&rarr;</div>
-            <div class="rotate-cell" id="r0-1cw">&uarr;</div>
+            <div class="rotate-cell" id="r1-0ccw">&larr;</div>
+            <div class="rotate-cell" id="r1-1ccw">&larr;</div>
           </div>
           <div class="rotate-col">
-            <div class="rotate-cell" id="r1-0cw">&darr;</div>
-            <div class="rotate-cell" id="r1-1cw">&larr;</div>
+            <div class="rotate-cell" id="r1-0cw">&rarr;</div>
+            <div class="rotate-cell" id="r1-1cw">&rarr;</div>
           </div>
         </div/>
 
