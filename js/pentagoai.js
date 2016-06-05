@@ -15,8 +15,8 @@ var PentagoAI = (function() {
     // 2 is random opponent
     // 3 is auto smart
     // 4 is smart opponent
-		var AUTOPLAY_MODE = 3; // 0 is manual
-		var PLAY_RATE = 500; // ms per turn in auto play
+		var AUTOPLAY_MODE = 1; // 0 is manual
+		var PLAY_RATE = 100; // ms per turn in auto play
     var PLACE_DELAY = 500; // ms per placement 
     var ROTATE_DELAY = 500; // ms per rotation
 
@@ -25,6 +25,7 @@ var PentagoAI = (function() {
     var state;
     var turnState;
     var currPlayer;
+    var wins;
 
     /******************
      * work functions */
@@ -58,6 +59,7 @@ var PentagoAI = (function() {
       // init working vars
       currPlayer = 0;
       turnState = 0;
+      wins = [0, 0, 0];
 
       // add event listeners for the rotations
       for (var cw = 0; cw < 2; cw++) {
@@ -176,16 +178,28 @@ var PentagoAI = (function() {
 			placeMarble(move[0], move[1]);
 			setTimeout(function() {
         rotateBoard(move[2], move[3], move[4]);
-        // renderState(state);
       }, AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3 ? 0 : ROTATE_DELAY);
     }
 
     // detects whether or not the game is over and notifies the user
     function handleEndBehavior() {
       if (isTerminalState(state)) {
+        // update winner count
+        var winner = getWinningLine(state);
+        if (winner !== -1) {
+          wins[winner] += 1;
+        } else wins[2] += 1;
+
+        // render winner count
+        $s('#red-wins').innerHTML = wins[0];
+        $s('#blue-wins').innerHTML = wins[1];
+        $s('#ties').innerHTML = wins[2];
+
+        // alert the user
         if (AUTOPLAY_MODE === 0) alert('Game over!');
 				else alertUser('Game over!');
 
+        // reset the state
         state = [];
         for (var yi = 0; yi < 6; yi++) {
           state.push([]);
@@ -197,6 +211,7 @@ var PentagoAI = (function() {
         turnState = 0;
         currPlayer = 0;
 
+        // render the end state
         setTimeout(function() {
           renderState(state);
         }, PLAY_RATE/2);
