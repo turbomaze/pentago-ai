@@ -11,8 +11,14 @@ var PentagoAI = (function() {
 
     /**********
      * config */
-		var AUTOPLAY = true;
-		var PLAY_RATE = 80; // ms per turn
+    // 1 is auto random
+    // 2 is random opponent
+    // 3 is auto smart
+    // 4 is smart opponent
+		var AUTOPLAY_MODE = 0; // 0 is manual
+		var PLAY_RATE = 80; // ms per turn in auto play
+    var PLACE_DELAY = 500; // ms per placement 
+    var ROTATE_DELAY = 500; // ms per rotation
 
     /****************
      * working vars */
@@ -70,9 +76,12 @@ var PentagoAI = (function() {
       }
 
 			// play randomly
-			setInterval(function() {
-				makeRandomMove();
-			}, PLAY_RATE);
+      if (AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3) {
+			  setInterval(function() {
+			  	if (AUTOPLAY_MODE === 1) makeRandomMove();
+          else if (AUTOPLAY_MODE === 3) makeSmartMove();
+			  }, PLAY_RATE);
+      }
     }
 
 		function makeRandomMove() {
@@ -88,13 +97,19 @@ var PentagoAI = (function() {
 			var c = Math.floor(2*Math.random());
 
 			placeMarble(x, y);
-			rotateBoard(p, q, c);
+			setTimeout(function() {
+        rotateBoard(p, q, c);
+      }, AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3 ? 0 : ROTATE_DELAY);
 		}
+
+    function makeSmartMove() {
+      makeRandomMove();
+    }
 
     function handleEndBehavior() {
       if (isTerminalState()) {
-        if (AUTOPLAY) alertUser('Game over!');
-				else alert('Game over!');
+        if (AUTOPLAY_MODE === 0) alert('Game over!');
+				else alertUser('Game over!');
 
         state = [];
         for (var yi = 0; yi < 6; yi++) {
@@ -125,6 +140,21 @@ var PentagoAI = (function() {
         $s('#what').innerHTML = 'place';
 
         handleEndBehavior();
+
+        // only autoplay when it's the opponent's turn
+        if (currPlayer === 0) return;
+
+        // auto opponent
+        if (AUTOPLAY_MODE === 2 || AUTOPLAY_MODE === 4) {
+          setTimeout(function() {
+            if (AUTOPLAY_MODE === 2) {
+              makeRandomMove();
+            } else if (AUTOPLAY_MODE === 4) {
+              makeSmartMove();
+            }
+          }, PLACE_DELAY);
+          handleEndBehavior();
+        }
       }
     }
 
