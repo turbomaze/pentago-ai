@@ -186,7 +186,14 @@ var PentagoAI = (function() {
         return true;
       } else {
         // if all of the cells are filled, it's true, else false
-        return false;
+        for (var yi = 0; yi < 6; yi++) {
+          for (var xi = 0; xi < 6; xi++) {
+            if (state[yi][xi] === -1) {
+              return false; 
+            }
+          }
+        }
+        return true;
       }
     }
 
