@@ -12,6 +12,7 @@ var PentagoAI = (function() {
     /**********
      * config */
 		var AUTOPLAY = true;
+		var PLAY_RATE = 80; // ms per turn
 
     /****************
      * working vars */
@@ -67,7 +68,28 @@ var PentagoAI = (function() {
           }
         }
       }
+
+			// play randomly
+			setInterval(function() {
+				makeRandomMove();
+			}, PLAY_RATE);
     }
+
+		function makeRandomMove() {
+			var x = Math.floor(6*Math.random());
+			var y = Math.floor(6*Math.random());
+			while (state[y][x] !== -1) {
+  			x = Math.floor(6*Math.random());
+				y = Math.floor(6*Math.random());
+			}
+
+			var p = Math.floor(2*Math.random());
+			var q = Math.floor(2*Math.random());
+			var c = Math.floor(2*Math.random());
+
+			placeMarble(x, y);
+			rotateBoard(p, q, c);
+		}
 
     function handleEndBehavior() {
       if (isTerminalState()) {
