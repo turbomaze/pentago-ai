@@ -77,13 +77,32 @@
         br {
           clear: both;
         }
+
+        @-webkit-keyframes flash {
+          0% {
+						color: red;
+          }
+          50% {
+						color: orange;
+          }
+          100% {
+						color: red;
+          }
+        }
+
+        .flash {
+          -webkit-animation-name: flash;
+          -webkit-animation-duration: 300ms;
+          -webkit-animation-iteration-count: 10;
+          -webkit-animation-timing-function: ease-in-out;
+        }
         </style>
     </head>
     <body>
       <div id="container">
         <h2>Pentago</h2>
 
-        <div>
+        <div id="action">
           <span id="turn">Red</span>'s turn to <span id="what">place</span>.
         </div>
 

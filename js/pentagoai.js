@@ -11,6 +11,7 @@ var PentagoAI = (function() {
 
     /**********
      * config */
+		var AUTOPLAY = true;
 
     /****************
      * working vars */
@@ -70,7 +71,8 @@ var PentagoAI = (function() {
 
     function handleEndBehavior() {
       if (isTerminalState()) {
-        alert('Game over!');
+        if (AUTOPLAY) alertUser('Game over!');
+				else alert('Game over!');
 
         state = [];
         for (var yi = 0; yi < 6; yi++) {
@@ -89,7 +91,7 @@ var PentagoAI = (function() {
 
     function rotateBoard(x, y, c) {
       if (turnState === 0) {
-        alert('First you must place a marble.');
+        alertUser('First you must place a marble.');
       } else {
         // rotate now
         rotateState(x, y, c);
@@ -211,7 +213,7 @@ var PentagoAI = (function() {
     function placeMarble(x, y) {
       if (state[y][x] < 0) {
         if (turnState === 1 ) {
-          alert ('You already placed a marble this turn. Now you rotate.');
+          alertUser('You already placed a marble this turn. Now you rotate.');
         } else {
           state[y][x] = currPlayer;
           var cn = 'color-square ' + (state[y][x] === 0 ? 'red' : 'blue');
@@ -222,12 +224,19 @@ var PentagoAI = (function() {
           handleEndBehavior();
         }
       } else {
-        alert('This cell has a marble in it!');
+        alertUser('This cell has a marble in it!');
       }
     }
 
     /********************
      * helper functions */
+    function alertUser(msg) {
+			$s('#action').className = 'action flash';
+			setTimeout(function() {
+				$s('#action').className = 'action';
+			}, 2*300);
+		}
+
     function $s(id) { //for convenience
       if (id.charAt(0) !== '#') return false;
       return document.getElementById(id.substring(1));
