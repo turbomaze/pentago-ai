@@ -84,6 +84,7 @@ var PentagoAI = (function() {
       }
     }
 
+    // chooses a random placement and rotation and executes them as a player
 		function makeRandomMove() {
 			var x = Math.floor(6*Math.random());
 			var y = Math.floor(6*Math.random());
@@ -102,12 +103,19 @@ var PentagoAI = (function() {
       }, AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3 ? 0 : ROTATE_DELAY);
 		}
 
+    // given state s and move <x, y, p, q, c>, gives the resulting game state
+    function getNextState(s, x, y, p, q, c) {
+
+    }
+
+    // chooses a smart placement and rotation and executes them as a player
     function makeSmartMove() {
       makeRandomMove();
     }
 
+    // detects whether or not the game is over and notifies the user
     function handleEndBehavior() {
-      if (isTerminalState()) {
+      if (isTerminalState(state)) {
         if (AUTOPLAY_MODE === 0) alert('Game over!');
 				else alertUser('Game over!');
 
@@ -122,10 +130,11 @@ var PentagoAI = (function() {
         turnState = 0;
         currPlayer = 0;
 
-        renderState();
+        renderState(state);
       }
     }
 
+    // given a quadrant and direction, executes that rotation as a player
     function rotateBoard(x, y, c) {
       if (turnState === 0) {
         alertUser('First you must place a marble.');
@@ -158,6 +167,7 @@ var PentagoAI = (function() {
       }
     }
 
+    // given a quadrant and a direction, rotates the game state
     function rotateState(x, y, c) {
       if (c === 1) {
         rotateState(x, y, 0);
@@ -178,10 +188,11 @@ var PentagoAI = (function() {
         state = newState;
       }
 
-      renderState();
+      renderState(state);
     }
 
-    function getWinningLine() {
+    // looks at the game state and determines whether or not there's a 5-line
+    function getWinningLine(s) {
       function rotateGrid(g) {
         var G = g.map(function(row) { return row.slice(0); });
         var bx = 2.5, by = 2.5;
@@ -202,7 +213,7 @@ var PentagoAI = (function() {
         return start;
       }
 
-      var s = state.map(function(row) { return row.slice(0); });
+      var S = s.map(function(row) { return row.slice(0); });
       var lines = [
         // left horizontals
         [[0,0], [1,0], [2,0], [3,0], [4,0]],
@@ -223,26 +234,27 @@ var PentagoAI = (function() {
       for (var ai = 0; ai < 4; ai++) {
         // check all the lines
         for (var li = 0; li < lines.length; li++) {
-          var winner = checkLine(s, lines[li]);
+          var winner = checkLine(S, lines[li]);
           if (winner !== -1) return winner;
         }
 
         // rotate the grid to check isomorphic lines
-        s = rotateGrid(s);
+        S = rotateGrid(S);
       }
 
       return -1;
     }
 
-    function isTerminalState() {
-      var winner = getWinningLine();
+    // returns true iff there's a 5-line or the cells are all filled
+    function isTerminalState(s) {
+      var winner = getWinningLine(s);
       if (winner !== -1) {
         return true;
       } else {
         // if all of the cells are filled, it's true, else false
         for (var yi = 0; yi < 6; yi++) {
           for (var xi = 0; xi < 6; xi++) {
-            if (state[yi][xi] === -1) {
+            if (s[yi][xi] === -1) {
               return false; 
             }
           }
@@ -251,17 +263,19 @@ var PentagoAI = (function() {
       }
     }
 
-    function renderState() {
+    // renders the game state to the UI
+    function renderState(s) {
       for (var yi = 0; yi < 6; yi++) {
         for (var xi = 0; xi < 6; xi++) {
           var cn = 'color-square blank';
-          if (state[yi][xi] === 0) cn += ' red';
-          else if (state[yi][xi] === 1) cn += ' blue';
+          if (s[yi][xi] === 0) cn += ' red';
+          else if (s[yi][xi] === 1) cn += ' blue';
           $s('#sq'+xi+'-'+yi).className = cn;
         }
       }
     }
 
+    // given a location, executes that placement as a player
     function placeMarble(x, y) {
       if (state[y][x] < 0) {
         if (turnState === 1 ) {
