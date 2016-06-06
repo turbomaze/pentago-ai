@@ -15,11 +15,11 @@ var PentagoAI = (function() {
     // 2 is random opponent
     // 3 is auto smart
     // 4 is smart opponent
-		var AUTOPLAY_MODE = 3; // 0 is manual
+		var AUTOPLAY_MODE = 4; // 0 is manual
     var SMART_P1 = 5; // how many games to simulate for p1
     var SMART_P2 = 5; // " ", only for mode 3
 
-		var PLAY_RATE = 1000; // ms per turn in auto play
+		var PLAY_RATE = 80; // ms per turn in auto play
     var PLACE_DELAY = 500; // ms per placement 
     var ROTATE_DELAY = 500; // ms per rotation
 
@@ -81,11 +81,10 @@ var PentagoAI = (function() {
       }
 
   		// play automatically 
-      if (AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3) {
-			  setInterval(function() {
-			  	if (AUTOPLAY_MODE === 1) makeRandomMove();
-          else if (AUTOPLAY_MODE === 3) makeSmartMove(SMART_P1);
-			  }, PLAY_RATE);
+		  if (AUTOPLAY_MODE === 1) {
+        delayedCallbackLoop(makeRandomMove, PLAY_RATE);
+      } else if (AUTOPLAY_MODE === 3) {
+        delayedCallbackLoop(makeSmartMove, PLAY_RATE, [SMART_P1]);
       }
     }
 
@@ -399,6 +398,16 @@ var PentagoAI = (function() {
 
     /********************
      * helper functions */
+    function delayedCallbackLoop(f, delay, params) {
+      delay = delay || 500;
+      params = params || [];
+
+      f.apply(this, params);
+      setTimeout(function() {
+        delayedCallbackLoop(f, delay, params);  
+      }, delay);
+    }
+
     function alertUser(msg) {
 			$s('#action').className = 'action flash';
 			setTimeout(function() {
