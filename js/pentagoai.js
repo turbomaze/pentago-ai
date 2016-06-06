@@ -232,7 +232,7 @@ var PentagoAI = (function() {
 
         // render the end state
         setTimeout(function() {
-          renderState(state);
+          renderState(state, currPlayer, turnState);
         }, PLAY_RATE/2);
       }
     }
@@ -244,7 +244,7 @@ var PentagoAI = (function() {
       } else {
         // rotate now
         state = rotateState(state, x, y, c);
-        renderState(state);
+        renderState(state, currPlayer, turnState);
 
         // update turn state
         currPlayer = 1 - currPlayer;
@@ -365,7 +365,10 @@ var PentagoAI = (function() {
     }
 
     // renders the game state to the UI
-    function renderState(s) {
+    function renderState(s, p, r) {
+      $s('#turn').innerHTML = p === 0 ? 'Red' : 'Blue';
+      $s('#what').innerHTML = r === 0 ? 'place' : 'rotate';
+
       for (var yi = 0; yi < 6; yi++) {
         for (var xi = 0; xi < 6; xi++) {
           var cn = 'color-square blank';
