@@ -15,8 +15,11 @@ var PentagoAI = (function() {
     // 2 is random opponent
     // 3 is auto smart
     // 4 is smart opponent
-		var AUTOPLAY_MODE = 1; // 0 is manual
-		var PLAY_RATE = 100; // ms per turn in auto play
+		var AUTOPLAY_MODE = 3; // 0 is manual
+    var SMART_P1 = 5; // how many games to simulate for p1
+    var SMART_P2 = 5; // " ", only for mode 3
+
+		var PLAY_RATE = 1000; // ms per turn in auto play
     var PLACE_DELAY = 500; // ms per placement 
     var ROTATE_DELAY = 500; // ms per rotation
 
@@ -77,11 +80,11 @@ var PentagoAI = (function() {
         }
       }
 
-			// play automatically 
+  		// play automatically 
       if (AUTOPLAY_MODE === 1 || AUTOPLAY_MODE === 3) {
 			  setInterval(function() {
 			  	if (AUTOPLAY_MODE === 1) makeRandomMove();
-          else if (AUTOPLAY_MODE === 3) makeSmartMove();
+          else if (AUTOPLAY_MODE === 3) makeSmartMove(SMART_P1);
 			  }, PLAY_RATE);
       }
     }
@@ -112,10 +115,10 @@ var PentagoAI = (function() {
 		}
 
     // given state s and move <x, y, p, q, c>, gives the resulting game state
-    function getNextState(s, x, y, p, q, c) {
+    function getNextState(s, player, x, y, p, q, c) {
       var newState = s.map(function(row) { return row.slice(0); });
-      newState[y][x] = currPlayer; // place piece
-      newState = rotateState(state, p, q, c);
+      newState[y][x] = player; // place piece
+      newState = rotateState(newState, p, q, c);
       return newState;
     }
 
@@ -147,21 +150,38 @@ var PentagoAI = (function() {
       return moves;
     }
 
+    // given a state and next player, simulates a random match
+    function simulateGameToEnd(s, p) {
+      var nextState = s.map(function(row) { return row.slice(0); });
+
+      while (!isTerminalState(nextState)) {
+        var move = getRandomMove(nextState);
+        nextState = getNextState.apply(this, [nextState, p].concat(move));
+        p = 1-p;
+      }
+
+      return getWinningLine(nextState);
+    }
+
     // given a state s and move m, returns the expected end game score
-    function getProbabilisticScore(s, t, m) {
-      var t = 100;
-      return 0;
+    function getProbabilisticScore(t, s, p, m) {
+      var cumScore = 0;
+      var nextState = getNextState.apply(this, [s, p].concat(m));
+      for (var ti = 0; ti < t; ti++) {
+        cumScore += simulateGameToEnd(nextState, 1-p); 
+      }
+      return cumScore/t;
     }
 
     // chooses a smart placement and rotation
-    function getSmartMove() {
+    function getSmartMove(smartParam) {
       // get all the moves
       var moves = getValidMoves();
 
       // get the move with the best score
       var bestMove = [false, -Infinity];
-      var scores = moves.forEach(function(move) {
-        var score = getProbabilisticScore(state, move);
+      moves.forEach(function(move) {
+        var score = getProbabilisticScore(smartParam, state, currPlayer, move);
         if (score > bestMove[1]) {
           bestMove = [move, score];
         }
@@ -171,8 +191,8 @@ var PentagoAI = (function() {
     }
     
     // and executes them as a player
-    function makeSmartMove() {
-      var move = getSmartMove();
+    function makeSmartMove(smartParam) {
+      var move = getSmartMove(smartParam);
       
       // execute that move
 			placeMarble(move[0], move[1]);
@@ -244,7 +264,7 @@ var PentagoAI = (function() {
             if (AUTOPLAY_MODE === 2) {
               makeRandomMove();
             } else if (AUTOPLAY_MODE === 4) {
-              makeSmartMove();
+              makeSmartMove(SMART_P1);
             }
           }, PLACE_DELAY);
           handleEndBehavior();
@@ -369,7 +389,8 @@ var PentagoAI = (function() {
           turnState += 1;
           $s('#what').innerHTML = 'rotate';
 
-          handleEndBehavior();
+          // DO NOT check for this here; the turn must be completed first
+          // handleEndBehavior();
         }
       } else {
         alertUser('This cell has a marble in it!');
